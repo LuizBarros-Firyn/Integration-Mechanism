@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model DataSource {
+  id        Int                @id @default(autoincrement())
+  name      String             @unique
+  Sellers   Seller[]
+  Products  Product[]
+  createdAt DateTime           @default(now())
+  updatedAt DateTime?          @updatedAt
+  Modules   DataSourceModule[]
+}
+
+model DataSourceField {
+  id                 Int               @id @default(autoincrement())
+  systemField        String
+  externalField      String
+  Module             DataSourceModule? @relation(fields: [dataSourceModuleId], references: [id])
+  dataSourceModuleId Int?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime?         @updatedAt
+}
+
+model DataSourceModuleType {
+  id        Int                @id @default(autoincrement())
+  name      String             @unique
+  Modules   DataSourceModule[]
+  createdAt DateTime           @default(now())
+  updatedAt DateTime?          @updatedAt
+}
+
+model DataSourceModule {
+  id           Int                  @id @default(autoincrement())
+  Type         DataSourceModuleType @relation(fields: [typeId], references: [id])
+  typeId       Int
+  Fields       DataSourceField[]
+  DataSource   DataSource           @relation(fields: [dataSourceId], references: [id])
+  dataSourceId Int
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime?            @updatedAt
+}
+
+model Seller {
+  id           Int          @id @default(autoincrement())
+  name         String       @unique
+  chain        String?
+  banner       String?
+  cnpj         String?
+  address      String?
+  type         String?
+  DataSource   DataSource   @relation(fields: [dataSourceId], references: [id])
+  dataSourceId Int
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime?    @updatedAt
+  SellsEntries SellsEntry[]
+}
+
+model Product {
+  id           Int          @id @default(autoincrement())
+  name         String
+  category     String?
+  brand        String?
+  globalKey    String?      @unique
+  height       Decimal?     @db.Decimal(10, 2)
+  width        Decimal?     @db.Decimal(10, 2)
+  weight       Decimal?     @db.Decimal(10, 2)
+  DataSource   DataSource   @relation(fields: [dataSourceId], references: [id])
+  dataSourceId Int
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime?    @updatedAt
+  SellsEntries SellsEntry[]
+}
+
+model SellsEntry {
+  id             Int       @id @default(autoincrement())
+  day            DateTime
+  quantitySold   Decimal?  @db.Decimal(10, 2)
+  valueSold      Decimal?  @db.Decimal(10, 2)
+  remainingStock Decimal?  @db.Decimal(10, 2)
+  Product        Product   @relation(fields: [productId], references: [id])
+  productId      Int
+  Seller         Seller    @relation(fields: [sellerId], references: [id])
+  sellerId       Int
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime? @updatedAt
+}
+
+model User {
+  id                              Int                       @id @default(autoincrement())
+  name                            String
+  email                           String
+  password                        String
+  createdAt                       DateTime                  @default(now())
+  updatedAt                       DateTime                  @updatedAt
+}
